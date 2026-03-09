@@ -165,28 +165,21 @@ def test_random_circuit_compare(fx_bg: PCG64, jumps: int) -> None:
     circuit = rand_circuit(nqubits, depth, rng, use_ccx=True)
     pattern = transpile_jcz(circuit).pattern.infer_pauli_measurements()
     pattern.remove_input_nodes()
+    pattern = pattern.infer_pauli_measurements()
     pattern.perform_pauli_measurements()
     pattern_og = transpile_jcz_cf(circuit).pattern.infer_pauli_measurements()
     pattern_og.remove_input_nodes()
+    pattern_og = pattern_og.infer_pauli_measurements()
     pattern_og.perform_pauli_measurements()
     pattern_gpx = circuit.transpile().pattern.infer_pauli_measurements()
     pattern_gpx.remove_input_nodes()
+    pattern_gpx = pattern_gpx.infer_pauli_measurements()
     pattern_gpx.perform_pauli_measurements()
-    state = pattern.simulate_pattern(backend="tensornetwork", branch_selector=bs)
-    state_og = pattern_og.simulate_pattern(backend="tensornetwork", branch_selector=bs)
-    state_gpx = pattern_gpx.simulate_pattern(backend="tensornetwork", branch_selector=bs)
-    assert np.abs(
-        np.dot(
-            state.to_statevector().flatten().conjugate(),
-            state_og.to_statevector().flatten(),
-        )
-    ) == pytest.approx(1)
-    assert np.abs(
-        np.dot(
-            state_og.to_statevector().flatten().conjugate(),
-            state_gpx.to_statevector().flatten(),
-        )
-    ) == pytest.approx(1)
+    state = pattern.simulate_pattern(branch_selector=bs)
+    state_og = pattern_og.simulate_pattern(branch_selector=bs)
+    state_gpx = pattern_gpx.simulate_pattern(branch_selector=bs)
+    assert state.isclose(state_og)
+    assert state_og.isclose(state_gpx)
 
 
 @pytest.mark.parametrize("jumps", range(1, 11))

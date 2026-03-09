@@ -21,6 +21,7 @@ from graphix.fundamentals import ANGLE_PI, ParameterizedAngle
 from graphix.instruction import InstructionKind
 from graphix.measurements import BlochMeasurement, Measurement, PauliMeasurement
 from graphix.opengraph import OpenGraph
+from graphix.optimization import StandardizedPattern
 from graphix.transpiler import (
     Circuit,
     TranspileResult,
@@ -514,6 +515,6 @@ def transpile_jcz_cf(circuit: Circuit) -> TranspileResult:
 
     """
     f, classical_outputs = circuit_to_causal_flow(circuit)
-    pattern = f.to_corrections().to_pattern()
+    pattern = StandardizedPattern.from_pattern(f.to_corrections().to_pattern()).to_space_optimal_pattern()
     pattern.extend(classical_outputs.values())
     return TranspileResult(pattern, tuple(classical_outputs.keys()))
